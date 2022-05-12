@@ -27,7 +27,7 @@ public class frmMain extends javax.swing.JFrame {
             tenedores[i] = new Tenedor(i+1);
     }
     
-    private static Semaphore mutex = new Semaphore(2, true);
+    private static Semaphore mutex = new Semaphore(1, true);
     
     
     
@@ -45,25 +45,17 @@ public class frmMain extends javax.swing.JFrame {
             while (true) {
                 int numeroIzquierda, numeroDerecha;
                 // Primero debe intentar tomar el tenedor izquierdo
-                
                 numeroIzquierda = this.id - 1;
                 if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
-                    tenedores[numeroIzquierda].setFilosofo(this.id);
+                    tenedores[numeroIzquierda].setFilosofo(this.id);                       
+                    
                     actualizarMesa();
                     
-                    try {
-                        mutex.acquire();
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                   
-              
                     // Si tiene éxito, debe intentar tomar el tenedor derecho
                     
                         numeroDerecha = this.id - 2;
                         if (numeroDerecha == -1)
                             numeroDerecha = N - 1;
-                        
                         
                     // Si tiene los 2 tenedores debe comer
                     
@@ -77,18 +69,32 @@ public class frmMain extends javax.swing.JFrame {
                             Thread.sleep(5000);
                         } catch (InterruptedException ex) {
                             Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-                        }
+                        } 
+                        
                         // Después de comer debe soltar ambos tenedores
                         tenedores[numeroIzquierda].setFilosofo(-1);
                         tenedores[numeroDerecha].setFilosofo(-1);
-                        actualizarMesa();
                         mutex.release();
+                        actualizarMesa();
+                        
                     } else { // Si falla, suelta el tenedor izquierdo
                         tenedores[numeroIzquierda].setFilosofo(-1);
+                        try {
+                            mutex.acquire();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         actualizarMesa();
                     }
+                  
                 } else {
+                    try {
+                        mutex.acquire();
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
+                    actualizarMesa();
                 }
             }
         }
