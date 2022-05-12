@@ -4,6 +4,7 @@
  */
 package main;
 
+import java.awt.Color;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +17,7 @@ public class frmMain extends javax.swing.JFrame {
     static final int N = 5; // Cantidad de tenedores
     Tenedor tenedores[] = new Tenedor[N]; // Tenedores para los filosofos
     Filosofo comensal;
-
+    Monitor monitor = new Monitor();
     /**
      * Creates new form frmMain
      */
@@ -26,8 +27,37 @@ public class frmMain extends javax.swing.JFrame {
             tenedores[i] = new Tenedor(i+1);
     }
     
+    class Monitor{ 
+        public synchronized int ordenarFilosofo (int id) {
+            int numeroIzquierda, numeroDerecha;
+                // Primero debe intentar tomar el tenedor izquierdo
+            numeroIzquierda = id - 1;
+            if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
+                tenedores[numeroIzquierda].setFilosofo(id);
+                actualizarMesa();
+                // Si tiene éxito, debe intentar tomar el tenedor derecho
+                numeroDerecha = id - 2;
+                if (numeroDerecha == -1)
+                    numeroDerecha = N - 1;
+                // Si tiene los 2 tenedores debe comer
+                if (tenedores[numeroDerecha].getFilosofo().equals("")) {
+                    tenedores[numeroDerecha].setFilosofo(id);
+                    actualizarMesa();
+                    // Y debe comer por 5 segundos
+                    // Después de comer debe soltar ambos tenedores
+                    return 2;
+                } else { // Si falla, suelta el tenedor izquierdo
+                    return 1;
+
+                }
+            } else {
+                return 0;
+            }
+        }
+    }
+    
+    
     public class Filosofo extends Thread {
-        
         public int id;
         
         public Filosofo(int numeroID) {
@@ -37,39 +67,55 @@ public class frmMain extends javax.swing.JFrame {
         @Override
         public void run(){
             while (true) {
+                int devolver = monitor.ordenarFilosofo(id);
                 int numeroIzquierda, numeroDerecha;
-                // Primero debe intentar tomar el tenedor izquierdo
-                numeroIzquierda = this.id - 1;
-                if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
-                    tenedores[numeroIzquierda].setFilosofo(this.id);
-                    actualizarMesa();
-                    // Si tiene éxito, debe intentar tomar el tenedor derecho
-                    numeroDerecha = this.id - 2;
-                    if (numeroDerecha == -1)
-                        numeroDerecha = N - 1;
-                    // Si tiene los 2 tenedores debe comer
-                    if (tenedores[numeroDerecha].getFilosofo().equals("")) {
-                        tenedores[numeroDerecha].setFilosofo(this.id);
-                        actualizarMesa();
-                        // Y debe comer por 5 segundos
-                        System.out.println("Filosofo " + this.id + " comiendo...");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        // Después de comer debe soltar ambos tenedores
-                        tenedores[numeroIzquierda].setFilosofo(-1);
-                        tenedores[numeroDerecha].setFilosofo(-1);
-                        actualizarMesa();
-                    } else { // Si falla, suelta el tenedor izquierdo
-                        tenedores[numeroIzquierda].setFilosofo(-1);
-                        actualizarMesa();
+                numeroIzquierda = id - 1;
+                numeroDerecha = id - 2;
+                if (numeroDerecha == -1)
+                    numeroDerecha = N - 1;
+                if (devolver == 2) {
+                    cambiarColor(true, id);
+                    try {
+                    Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
                     }
+                    cambiarColor(false, id);
+                    tenedores[numeroIzquierda].setFilosofo(-1);
+                    tenedores[numeroDerecha].setFilosofo(-1);
+                } else if (devolver == 1) {
+                    tenedores[numeroIzquierda].setFilosofo(-1);
                 } else {
-                    System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
+                    System.out.println("Filosofo " + id + " falla. Volver a intentarlo");
                 }
+                actualizarMesa();
+                System.out.println("Filosofo " + id + " comiendo..."); 
             }
+        }
+    }
+    public void cambiarColor (boolean comiendo, int id) {
+        
+        switch (id) {
+            case 1:
+                if (comiendo) {lblf1.setForeground(Color.red);}
+                else {lblf1.setForeground(Color.black);}
+                break;
+            case 2:
+                if (comiendo) {lblf2.setForeground(Color.red);}
+                else {lblf2.setForeground(Color.black);}
+                break;
+            case 3:
+                if (comiendo) {lblf3.setForeground(Color.red);}
+                else {lblf3.setForeground(Color.black);}
+                break;
+            case 4:
+                if (comiendo) {lblf4.setForeground(Color.red);}
+                else {lblf4.setForeground(Color.black);}
+                break;
+            case 5:
+                if (comiendo) {lblf5.setForeground(Color.red);}
+                else {lblf5.setForeground(Color.black);}
+                break;
         }
     }
 
@@ -94,11 +140,11 @@ public class frmMain extends javax.swing.JFrame {
         lblTenedor4 = new javax.swing.JLabel();
         lblTenedor5 = new javax.swing.JLabel();
         btnIniciar = new javax.swing.JButton();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
+        lblf3 = new javax.swing.JLabel();
+        lblf1 = new javax.swing.JLabel();
+        lblf2 = new javax.swing.JLabel();
+        lblf5 = new javax.swing.JLabel();
+        lblf4 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -138,20 +184,20 @@ public class frmMain extends javax.swing.JFrame {
             }
         });
 
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel7.setText("F3");
+        lblf3.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        lblf3.setText("F3");
 
-        jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel8.setText("F1");
+        lblf1.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        lblf1.setText("F1");
 
-        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel9.setText("F2");
+        lblf2.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        lblf2.setText("F2");
 
-        jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel10.setText("F5");
+        lblf5.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        lblf5.setText("F5");
 
-        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
-        jLabel11.setText("F4");
+        lblf4.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        lblf4.setText("F4");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -166,7 +212,7 @@ public class frmMain extends javax.swing.JFrame {
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jLabel2)
-                            .addComponent(jLabel7))
+                            .addComponent(lblf3))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnIniciar)
                         .addContainerGap())
@@ -175,8 +221,7 @@ public class frmMain extends javax.swing.JFrame {
                         .addGap(122, 122, 122))))
             .addGroup(layout.createSequentialGroup()
                 .addGap(43, 43, 43)
-                .addComponent(jLabel10)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblf5)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
@@ -193,7 +238,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addGap(94, 94, 94))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel8)
+                .addComponent(lblf1)
                 .addGap(330, 330, 330))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -213,12 +258,12 @@ public class frmMain extends javax.swing.JFrame {
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                     .addContainerGap(674, Short.MAX_VALUE)
-                    .addComponent(jLabel9)
+                    .addComponent(lblf2)
                     .addGap(15, 15, 15)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(211, 211, 211)
-                    .addComponent(jLabel11)
+                    .addComponent(lblf4)
                     .addContainerGap(478, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
@@ -227,7 +272,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addGap(20, 20, 20)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel8)
+                .addComponent(lblf1)
                 .addGap(2, 2, 2)
                 .addComponent(jLabel3)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -242,7 +287,7 @@ public class frmMain extends javax.swing.JFrame {
                             .addComponent(jLabel5)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(210, 210, 210)
-                        .addComponent(jLabel10)
+                        .addComponent(lblf5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
@@ -250,7 +295,7 @@ public class frmMain extends javax.swing.JFrame {
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel7)
+                            .addComponent(lblf3)
                             .addComponent(btnIniciar))
                         .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
@@ -277,12 +322,12 @@ public class frmMain extends javax.swing.JFrame {
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(288, 288, 288)
-                    .addComponent(jLabel9)
+                    .addComponent(lblf2)
                     .addContainerGap(317, Short.MAX_VALUE)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                     .addContainerGap(589, Short.MAX_VALUE)
-                    .addComponent(jLabel11)
+                    .addComponent(lblf4)
                     .addGap(16, 16, 16)))
         );
 
@@ -390,20 +435,20 @@ public class frmMain extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnIniciar;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel lblTenedor1;
     private javax.swing.JLabel lblTenedor2;
     private javax.swing.JLabel lblTenedor3;
     private javax.swing.JLabel lblTenedor4;
     private javax.swing.JLabel lblTenedor5;
+    private javax.swing.JLabel lblf1;
+    private javax.swing.JLabel lblf2;
+    private javax.swing.JLabel lblf3;
+    private javax.swing.JLabel lblf4;
+    private javax.swing.JLabel lblf5;
     // End of variables declaration//GEN-END:variables
 }
