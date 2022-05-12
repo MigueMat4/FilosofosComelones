@@ -4,6 +4,7 @@
  */
 package main;
 
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,63 +13,114 @@ import java.util.logging.Logger;
  * @author mfmatul
  */
 public class frmMain extends javax.swing.JFrame {
-    
+
     static final int N = 5; // Cantidad de tenedores
     Tenedor tenedores[] = new Tenedor[N]; // Tenedores para los filosofos
     Filosofo comensal;
+//    public static void Semphore[] semaforo = new Semaphore();
+//  MANDAR A LLAMAR A MONITOR
+    Monitores monitor = new Monitores();
 
+    
+    
+//    protected static void iniciarHilos() {
+//        for (int i = 0; i < N; i++) {                                
+//           semaforo[i] = new Semaphore(1);                                 
+//        }
+//        for (int i = 0; i < N; i++) {                                
+//            new Filosofo(i, semaforo, Filosofo).start();                  
+//            
+//        }
+//    }
     /**
      * Creates new form frmMain
      */
     public frmMain() {
         initComponents();
-        for (int i=0; i<N; i++)
-            tenedores[i] = new Tenedor(i+1);
+        for (int i = 0; i < N; i++) {
+            tenedores[i] = new Tenedor(i + 1);
+        }
     }
-    
+
     public class Filosofo extends Thread {
-        
+
         public int id;
-        
+//        public Semaphore[] semaforo;
+
         public Filosofo(int numeroID) {
             id = numeroID;
         }
-        
+
         @Override
-        public void run(){
+        public void run() {
             while (true) {
-                int numeroIzquierda, numeroDerecha;
-                // Primero debe intentar tomar el tenedor izquierdo
-                numeroIzquierda = this.id - 1;
-                if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
-                    tenedores[numeroIzquierda].setFilosofo(this.id);
-                    actualizarMesa();
-                    // Si tiene éxito, debe intentar tomar el tenedor derecho
-                    numeroDerecha = this.id - 2;
-                    if (numeroDerecha == -1)
-                        numeroDerecha = N - 1;
-                    // Si tiene los 2 tenedores debe comer
-                    if (tenedores[numeroDerecha].getFilosofo().equals("")) {
-                        tenedores[numeroDerecha].setFilosofo(this.id);
-                        actualizarMesa();
-                        // Y debe comer por 5 segundos
-                        System.out.println("Filosofo " + this.id + " comiendo...");
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        // Después de comer debe soltar ambos tenedores
-                        tenedores[numeroIzquierda].setFilosofo(-1);
-                        tenedores[numeroDerecha].setFilosofo(-1);
-                        actualizarMesa();
-                    } else { // Si falla, suelta el tenedor izquierdo
-                        tenedores[numeroIzquierda].setFilosofo(-1);
-                        actualizarMesa();
+                int verificar = monitor.filosofo(id);
+                int numeroIzquierda = id - 1;
+                int numeroDerecha = id - 2;
+                if (numeroDerecha == -1) {
+                    numeroDerecha = N - 1;
+                }
+                if (verificar == 2) {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
                     }
+//                  SUELTAN TENEDORES
+                    tenedores[numeroIzquierda].setFilosofo(-1);
+                    tenedores[numeroDerecha].setFilosofo(-1);
+
                 } else {
                     System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
                 }
+                actualizarMesa();
+                System.out.println("Filosofo " + this.id + " comiendo...");
+            }
+        }
+    }
+
+    class Monitores {
+
+        public synchronized int filosofo(int id) {
+//            private int Filosofo;
+//            private int[][] pFilosolo;
+            //Tenedor Izquiero , Tenedor Derecho
+            int numeroIzquierda, numeroDerecha;
+            // Primero debe intentar tomar el tenedor izquierdo
+            numeroIzquierda = id - 1;
+            if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
+                tenedores[numeroIzquierda].setFilosofo(id);
+                actualizarMesa();
+                // Si tiene éxito, debe intentar tomar el tenedor derecho
+                numeroDerecha = id - 2;
+                if (numeroDerecha == -1) {
+                    numeroDerecha = N - 1;
+                }
+                // Si tiene los 2 tenedores debe comer
+                if (tenedores[numeroDerecha].getFilosofo().equals("")) {
+                    tenedores[numeroDerecha].setFilosofo(id);
+                    actualizarMesa();
+                    // Y debe comer por 5 segundos
+//                    System.out.println("Filosofo " + this.id + " comiendo...");
+//                    try {
+//                        Thread.sleep(5000);
+//                    } catch (InterruptedException ex) {
+//                        Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+//                    }
+                    // Después de comer debe soltar ambos tenedores
+//                    tenedores[numeroIzquierda].setFilosofo(-1);
+//                    tenedores[numeroDerecha].setFilosofo(-1);
+//                    actualizarMesa();
+                    return 2;
+                } else { // Si falla, suelta el tenedor izquierdo
+//                    tenedores[numeroIzquierda].setFilosofo(-1);
+//                    actualizarMesa();
+                    return 1;
+
+                }
+            } else {
+//                System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
+                return 0;
             }
         }
     }
@@ -292,14 +344,13 @@ public class frmMain extends javax.swing.JFrame {
     private void btnIniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarActionPerformed
         btnIniciar.setEnabled(false);
         actualizarMesa();
-        for (int i=0; i<5; i++) {
-            comensal = new Filosofo(i+1);
+        for (int i = 0; i < 5; i++) {
+            comensal = new Filosofo(i + 1);
             comensal.start();
         }
     }//GEN-LAST:event_btnIniciarActionPerformed
 
     // -------------------- ¡No modificar a partir de aquí! --------------------
-    
     /**
      * @param args the command line arguments
      */
@@ -314,16 +365,24 @@ public class frmMain extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(frmMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(frmMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(frmMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(frmMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(frmMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(frmMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(frmMain.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(frmMain.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 
@@ -334,31 +393,38 @@ public class frmMain extends javax.swing.JFrame {
             }
         });
     }
-    
+
     public void actualizarMesa() {
-        if (tenedores[0].getFilosofo().equals(""))
+        if (tenedores[0].getFilosofo().equals("")) {
             lblTenedor1.setText("Libre");
-        else
+        } else {
             lblTenedor1.setText("Ocupado");
-        if (tenedores[1].getFilosofo().equals(""))
+        }
+        if (tenedores[1].getFilosofo().equals("")) {
             lblTenedor2.setText("Libre");
-        else
+        } else {
             lblTenedor2.setText("Ocupado");
-        if (tenedores[2].getFilosofo().equals(""))
+        }
+        if (tenedores[2].getFilosofo().equals("")) {
             lblTenedor3.setText("Libre");
-        else
+        } else {
             lblTenedor3.setText("Ocupado");
-        if (tenedores[3].getFilosofo().equals(""))
+        }
+        if (tenedores[3].getFilosofo().equals("")) {
             lblTenedor4.setText("Libre");
-        else
+        } else {
             lblTenedor4.setText("Ocupado");
-        if (tenedores[4].getFilosofo().equals(""))
+        }
+        if (tenedores[4].getFilosofo().equals("")) {
             lblTenedor5.setText("Libre");
-        else
+        } else {
             lblTenedor5.setText("Ocupado");
+        }
+
     }
-    
+
     public class Tenedor {
+
         private int numero;
         private String filosofo;
 
@@ -380,10 +446,11 @@ public class frmMain extends javax.swing.JFrame {
         }
 
         public void setFilosofo(int idFilosofo) {
-            if (idFilosofo == -1)
+            if (idFilosofo == -1) {
                 this.filosofo = "";
-            else
+            } else {
                 this.filosofo = "Filosofo " + String.valueOf(idFilosofo);
+            }
         }
     }
 
