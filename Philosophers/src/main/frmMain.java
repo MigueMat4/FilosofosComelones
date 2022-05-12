@@ -4,17 +4,73 @@
  */
 package main;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author mfmatul
  */
 public class frmMain extends javax.swing.JFrame {
+    
+    static final int N = 5; // Cantidad de tenedores
+    Tenedor tenedores[] = new Tenedor[N]; // Tenedores para los filosofos
+    Filosofo comensal;
 
     /**
      * Creates new form frmMain
      */
     public frmMain() {
         initComponents();
+        for (int i=0; i<N; i++)
+            tenedores[i] = new Tenedor(i+1);
+    }
+    
+    public class Filosofo extends Thread {
+        
+        public int id;
+        
+        public Filosofo(int numeroID) {
+            id = numeroID;
+        }
+        
+        @Override
+        public void run(){
+            while (true) {
+                int numeroIzquierda, numeroDerecha;
+                // Primero debe intentar tomar el tenedor izquierdo
+                numeroIzquierda = this.id - 1;
+                if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
+                    tenedores[numeroIzquierda].setFilosofo(this.id);
+                    actualizarMesa();
+                    // Si tiene éxito, debe intentar tomar el tenedor derecho
+                    numeroDerecha = this.id - 2;
+                    if (numeroDerecha == -1)
+                        numeroDerecha = N - 1;
+                    // Si tiene los 2 tenedores debe comer
+                    if (tenedores[numeroDerecha].getFilosofo().equals("")) {
+                        tenedores[numeroDerecha].setFilosofo(this.id);
+                        actualizarMesa();
+                        // Y debe comer por 5 segundos
+                        System.out.println("Filosofo " + this.id + " comiendo...");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        // Después de comer debe soltar ambos tenedores
+                        tenedores[numeroIzquierda].setFilosofo(-1);
+                        tenedores[numeroDerecha].setFilosofo(-1);
+                        actualizarMesa();
+                    } else { // Si falla, suelta el tenedor izquierdo
+                        tenedores[numeroIzquierda].setFilosofo(-1);
+                        actualizarMesa();
+                    }
+                } else {
+                    System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
+                }
+            }
+        }
     }
 
     /**
@@ -38,6 +94,11 @@ public class frmMain extends javax.swing.JFrame {
         lblTenedor4 = new javax.swing.JLabel();
         lblTenedor5 = new javax.swing.JLabel();
         btnIniciar = new javax.swing.JButton();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel10 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -71,6 +132,26 @@ public class frmMain extends javax.swing.JFrame {
 
         btnIniciar.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         btnIniciar.setText("Iniciar");
+        btnIniciar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnIniciarActionPerformed(evt);
+            }
+        });
+
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel7.setText("F3");
+
+        jLabel8.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel8.setText("F1");
+
+        jLabel9.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel9.setText("F2");
+
+        jLabel10.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel10.setText("F5");
+
+        jLabel11.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
+        jLabel11.setText("F4");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -83,32 +164,37 @@ public class frmMain extends javax.swing.JFrame {
                         .addGap(250, 250, 250)
                         .addComponent(lblTenedor3)
                         .addGap(18, 18, 18)
-                        .addComponent(jLabel2)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel7))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnIniciar)
+                        .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addGap(122, 122, 122))))
             .addGroup(layout.createSequentialGroup()
-                .addGap(95, 95, 95)
+                .addGap(43, 43, 43)
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addComponent(lblTenedor4)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(lblTenedor5)
-                            .addComponent(jLabel5))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 83, Short.MAX_VALUE)
-                        .addComponent(btnIniciar)
-                        .addGap(82, 82, 82)
-                        .addComponent(jLabel4)
-                        .addGap(94, 94, 94))))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(308, Short.MAX_VALUE)
-                    .addComponent(jLabel3)
-                    .addGap(275, 275, 275)))
+                            .addComponent(jLabel5)
+                            .addComponent(lblTenedor5))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 60, Short.MAX_VALUE)
+                        .addComponent(jLabel3)
+                        .addGap(42, 42, 42)))
+                .addComponent(jLabel4)
+                .addGap(94, 94, 94))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel8)
+                .addGap(330, 330, 330))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(150, 150, 150)
@@ -124,59 +210,96 @@ public class frmMain extends javax.swing.JFrame {
                     .addContainerGap(564, Short.MAX_VALUE)
                     .addComponent(lblTenedor2)
                     .addGap(92, 92, 92)))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addContainerGap(674, Short.MAX_VALUE)
+                    .addComponent(jLabel9)
+                    .addGap(15, 15, 15)))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(211, 211, 211)
+                    .addComponent(jLabel11)
+                    .addContainerGap(478, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(20, 20, 20)
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 109, Short.MAX_VALUE)
-                .addComponent(lblTenedor5)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel8)
+                .addGap(2, 2, 2)
+                .addComponent(jLabel3)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblTenedor5)
+                        .addGap(45, 45, 45)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel4)
-                            .addComponent(jLabel5))
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(73, 73, 73)
-                                .addComponent(jLabel2)
-                                .addGap(54, 54, 54))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addComponent(lblTenedor4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(lblTenedor3)
-                                .addGap(64, 64, 64))))
+                            .addComponent(jLabel5)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(87, 87, 87)
-                        .addComponent(btnIniciar))))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(61, 61, 61)
-                    .addComponent(jLabel3)
-                    .addContainerGap(433, Short.MAX_VALUE)))
+                        .addGap(210, 210, 210)
+                        .addComponent(jLabel10)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 116, Short.MAX_VALUE)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(73, 73, 73)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel7)
+                            .addComponent(btnIniciar))
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addComponent(lblTenedor4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblTenedor3)
+                        .addGap(64, 64, 64))))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(434, Short.MAX_VALUE)
+                    .addContainerGap(447, Short.MAX_VALUE)
                     .addComponent(jLabel6)
                     .addGap(60, 60, 60)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(139, 139, 139)
                     .addComponent(lblTenedor1)
-                    .addContainerGap(446, Short.MAX_VALUE)))
+                    .addContainerGap(459, Short.MAX_VALUE)))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                    .addContainerGap(413, Short.MAX_VALUE)
+                    .addContainerGap(426, Short.MAX_VALUE)
                     .addComponent(lblTenedor2)
                     .addGap(172, 172, 172)))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(288, 288, 288)
+                    .addComponent(jLabel9)
+                    .addContainerGap(317, Short.MAX_VALUE)))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addContainerGap(589, Short.MAX_VALUE)
+                    .addComponent(jLabel11)
+                    .addGap(16, 16, 16)))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnIniciarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarActionPerformed
+        btnIniciar.setEnabled(false);
+        actualizarMesa();
+        for (int i=0; i<5; i++) {
+            comensal = new Filosofo(i+1);
+            comensal.start();
+        }
+    }//GEN-LAST:event_btnIniciarActionPerformed
+
+    // -------------------- ¡No modificar a partir de aquí! --------------------
+    
     /**
      * @param args the command line arguments
      */
@@ -211,15 +334,72 @@ public class frmMain extends javax.swing.JFrame {
             }
         });
     }
+    
+    public void actualizarMesa() {
+        if (tenedores[0].getFilosofo().equals(""))
+            lblTenedor1.setText("Libre");
+        else
+            lblTenedor1.setText("Ocupado");
+        if (tenedores[1].getFilosofo().equals(""))
+            lblTenedor2.setText("Libre");
+        else
+            lblTenedor2.setText("Ocupado");
+        if (tenedores[2].getFilosofo().equals(""))
+            lblTenedor3.setText("Libre");
+        else
+            lblTenedor3.setText("Ocupado");
+        if (tenedores[3].getFilosofo().equals(""))
+            lblTenedor4.setText("Libre");
+        else
+            lblTenedor4.setText("Ocupado");
+        if (tenedores[4].getFilosofo().equals(""))
+            lblTenedor5.setText("Libre");
+        else
+            lblTenedor5.setText("Ocupado");
+    }
+    
+    public class Tenedor {
+        private int numero;
+        private String filosofo;
+
+        public Tenedor(int numero) {
+            this.numero = numero;
+            filosofo = "";
+        }
+
+        public int getNumero() {
+            return numero;
+        }
+
+        public void setNumero(int numero) {
+            this.numero = numero;
+        }
+
+        public String getFilosofo() {
+            return filosofo;
+        }
+
+        public void setFilosofo(int idFilosofo) {
+            if (idFilosofo == -1)
+                this.filosofo = "";
+            else
+                this.filosofo = "Filosofo " + String.valueOf(idFilosofo);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnIniciar;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JLabel lblTenedor1;
     private javax.swing.JLabel lblTenedor2;
     private javax.swing.JLabel lblTenedor3;
