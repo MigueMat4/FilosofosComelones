@@ -4,6 +4,7 @@
  */
 package main;
 
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,6 +27,10 @@ public class frmMain extends javax.swing.JFrame {
             tenedores[i] = new Tenedor(i+1);
     }
     
+    private static Semaphore mutex = new Semaphore(2, true);
+    
+    
+    
     public class Filosofo extends Thread {
         
         public int id;
@@ -36,21 +41,36 @@ public class frmMain extends javax.swing.JFrame {
         
         @Override
         public void run(){
+        
             while (true) {
                 int numeroIzquierda, numeroDerecha;
                 // Primero debe intentar tomar el tenedor izquierdo
+                
                 numeroIzquierda = this.id - 1;
                 if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
                     tenedores[numeroIzquierda].setFilosofo(this.id);
                     actualizarMesa();
+                    
+                    try {
+                        mutex.acquire();
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                   
+              
                     // Si tiene éxito, debe intentar tomar el tenedor derecho
-                    numeroDerecha = this.id - 2;
-                    if (numeroDerecha == -1)
-                        numeroDerecha = N - 1;
+                    
+                        numeroDerecha = this.id - 2;
+                        if (numeroDerecha == -1)
+                            numeroDerecha = N - 1;
+                        
+                        
                     // Si tiene los 2 tenedores debe comer
+                    
                     if (tenedores[numeroDerecha].getFilosofo().equals("")) {
                         tenedores[numeroDerecha].setFilosofo(this.id);
                         actualizarMesa();
+                        
                         // Y debe comer por 5 segundos
                         System.out.println("Filosofo " + this.id + " comiendo...");
                         try {
@@ -62,6 +82,7 @@ public class frmMain extends javax.swing.JFrame {
                         tenedores[numeroIzquierda].setFilosofo(-1);
                         tenedores[numeroDerecha].setFilosofo(-1);
                         actualizarMesa();
+                        mutex.release();
                     } else { // Si falla, suelta el tenedor izquierdo
                         tenedores[numeroIzquierda].setFilosofo(-1);
                         actualizarMesa();
