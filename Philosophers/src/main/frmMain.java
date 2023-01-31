@@ -4,6 +4,7 @@
  */
 package main;
 
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,6 +17,7 @@ public class frmMain extends javax.swing.JFrame {
     static final int N = 5; // Cantidad de tenedores
     Tenedor tenedores[] = new Tenedor[N]; // Tenedores para los filosofos
     Filosofo comensal;
+    Semaphore mutex = new Semaphore(2, true);
 
     /**
      * Creates new form frmMain
@@ -38,6 +40,11 @@ public class frmMain extends javax.swing.JFrame {
         public void run(){
             while (true) {
                 int numeroIzquierda, numeroDerecha;
+                try {
+                    mutex.acquire();
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(frmMain.class.getName()).log(Level.SEVERE, null, ex);
+                }
                 // Primero debe intentar tomar el tenedor izquierdo
                 numeroIzquierda = this.id - 1;
                 if (tenedores[numeroIzquierda].getFilosofo().equals("")) {
@@ -69,6 +76,7 @@ public class frmMain extends javax.swing.JFrame {
                 } else {
                     System.out.println("Filosofo " + this.id + " falló. Volverá a intentarlo");
                 }
+                mutex.release();
             }
         }
     }
